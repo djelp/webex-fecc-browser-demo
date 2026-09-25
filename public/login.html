@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Room Calling</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        background: #1a1b1e;
+        color: #e8e8e8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: #1a1b1e;
+      }
+      .card {
+        width: 100%;
+        max-width: 24rem;
+        background: #25262b;
+        border-radius: 12px;
+        padding: 2rem 1.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        text-align: center;
+      }
+      h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        font-size: 0.9rem;
+        color: #9aa0a6;
+        line-height: 1.45;
+        margin: 0 0 1.5rem;
+      }
+      .action {
+        display: block;
+        border: none;
+        border-radius: 8px;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        background: #5b8fc7;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .action:hover {
+        background: #6c9fd6;
+      }
+      #message {
+        margin: 1.25rem 0 0;
+        font-size: 0.85rem;
+        color: #ff6b6b;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Room Calling</h1>
+      <p>Sign in with your Webex account to call a room and control its camera.</p>
+      <a id="signIn" class="action" href="/auth/login" hidden>Sign in with Webex</a>
+      <p id="checking">Checking sign-in…</p>
+      <p id="message" role="status" hidden></p>
+    </main>
+    <script>
+      (function () {
+        const AUTH_ERRORS = {
+          not_authorized: "Your Webex account isn't allowed to use this page.",
+          signin_failed: "Webex sign-in failed. Try again.",
+        };
+        const signIn = document.getElementById("signIn");
+        const checking = document.getElementById("checking");
+        const message = document.getElementById("message");
+
+        function show(text) {
+          checking.hidden = true;
+          signIn.hidden = false;
+          message.textContent = text || "";
+          message.hidden = !text;
+        }
+
+        const authError = new URLSearchParams(location.search).get("authError");
+        if (authError) {
+          show(AUTH_ERRORS[authError] || AUTH_ERRORS.signin_failed);
+          history.replaceState(null, "", location.pathname);
+          return;
+        }
+
+        // Already signed in? Go straight to the calling page.
+        fetch("/auth/session")
+          .then((res) => {
+            if (res.ok) return location.replace("/call.html");
+            if (res.status === 503) {
+              checking.hidden = true;
+              message.textContent = "Webex sign-in is not configured on the server.";
+              message.hidden = false;
+              return;
+            }
+            show("");
+          })
+          .catch(() => show("Could not reach the server."));
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FECC web control</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        background: #1a1b1e;
+        color: #e8e8e8;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        box-sizing: border-box;
+      }
+      h1 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+      }
+      .hint {
+        font-size: 0.85rem;
+        color: #9aa0a6;
+        max-width: 36rem;
+        text-align: center;
+        margin-bottom: 1.25rem;
+        line-height: 1.4;
+      }
+      .hint code {
+        background: #2c2d32;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+      }
+      .warn {
+        color: #f5a623;
+        margin-bottom: 1rem;
+      }
+      .panel {
+        background: #25262b;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      }
+      .row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.35rem 0;
+      }
+      .row .spacer {
+        width: 3.25rem;
+        flex-shrink: 0;
+      }
+      button.ctrl {
+        width: 3.25rem;
+        height: 2.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        background: #3d3f46;
+        color: #fff;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+      }
+      button.ctrl:hover:not(:disabled) {
+        background: #4a4d56;
+      }
+      button.ctrl:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+      button.ctrl:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button.zoom {
+        width: 3.25rem;
+      }
+      #status {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        color: #9aa0a6;
+        min-height: 2.5rem;
+        text-align: center;
+        max-width: 22rem;
+      }
+      #status.ok {
+        color: #3ecf8e;
+      }
+      #status.err {
+        color: #ff6b6b;
+      }
+      #intensityPanel {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #3d3f46;
+        width: 100%;
+        max-width: 20rem;
+      }
+      #intensityPanel h2 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9aa0a6;
+        margin: 0 0 0.75rem;
+      }
+      .slider-row {
+        margin-bottom: 0.65rem;
+      }
+      .slider-row label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+        color: #c4c6ca;
+      }
+      .slider-row label span.val {
+        font-variant-numeric: tabular-nums;
+        color: #7eb8da;
+      }
+      .slider-row input[type="range"] {
+        width: 100%;
+        accent-color: #5b8fc7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Far end camera control</h1>
+    <p id="deviceLine" class="hint"></p>
+    <p id="missingWarn" class="hint warn" hidden>
+      Add <code>deviceId</code> to the URL to enable controls.
+    </p>
+    <div class="panel">
+      <div class="row">
+        <span class="spacer"></span>
+        <button type="button" class="ctrl" data-direction="up" title="Tilt up">↑</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="row">
+        <span class="spacer"></span>
+        <button type="button" class="ctrl" data-direction="left" title="Pan left">←</button>
+        <span class="spacer" style="width: 0.5rem"></span>
+        <button type="button" class="ctrl" data-direction="right" title="Pan right">→</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="row">
+        <span class="spacer"></span>
+        <button type="button" class="ctrl" data-direction="down" title="Tilt down">↓</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="row" style="margin-top: 0.75rem">
+        <span class="spacer"></span>
+        <button type="button" class="ctrl zoom" data-direction="zoom-in" title="Zoom in">+</button>
+        <button type="button" class="ctrl zoom" data-direction="zoom-out" title="Zoom out">−</button>
+        <span class="spacer"></span>
+      </div>
+      <div id="intensityPanel">
+        <h2 id="intensityHeading">Ramp speed (Camera.Ramp)</h2>
+        <div class="slider-row">
+          <label for="panSpeed">Pan speed <span class="val" id="panSpeedOut">12</span></label>
+          <input type="range" id="panSpeed" min="1" max="24" step="1" value="12" />
+        </div>
+        <div class="slider-row">
+          <label for="tiltSpeed">Tilt speed <span class="val" id="tiltSpeedOut">12</span></label>
+          <input type="range" id="tiltSpeed" min="1" max="24" step="1" value="12" />
+        </div>
+        <div class="slider-row">
+          <label for="zoomSpeed">Zoom speed <span class="val" id="zoomSpeedOut">8</span></label>
+          <input type="range" id="zoomSpeed" min="1" max="15" step="1" value="8" />
+        </div>
+      </div>
+    </div>
+    <div id="status" role="status"></div>
+    <script src="/fecc-controls.js"></script>
+    <script>
+      // Opened without a device (the site root): start at the sign-in page instead.
+      if (!new URLSearchParams(location.search).get("deviceId")) location.replace("/login.html");
+    </script>
+    <script>
+      (function () {
+        console.log("[FECC web app] browser (client-side):", {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          languages: navigator.languages ? [...navigator.languages] : undefined,
+          platform: navigator.platform,
+          vendor: navigator.vendor,
+          cookieEnabled: navigator.cookieEnabled,
+          screen: {
+            width: screen.width,
+            height: screen.height,
+            availWidth: screen.availWidth,
+            availHeight: screen.availHeight,
+          },
+          viewport: { innerWidth: window.innerWidth, innerHeight: window.innerHeight },
+          devicePixelRatio: window.devicePixelRatio,
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const deviceId = params.get("deviceId");
+        const deviceLine = document.getElementById("deviceLine");
+        const missingWarn = document.getElementById("missingWarn");
+        const statusEl = document.getElementById("status");
+        const controls = createFeccControls({
+          root: document.body,
+          statusEl,
+          getDeviceId: () => deviceId,
+        });
+
+        fetch("/api/fecc/config").catch(() => {});
+
+        if (deviceId) {
+          const short =
+            deviceId.length > 28 ? deviceId.slice(0, 14) + "…" + deviceId.slice(-10) : deviceId;
+          deviceLine.textContent = "Device: " + short;
+        } else {
+          missingWarn.hidden = false;
+          controls.setEnabled(false);
+        }
+      })();
+    </script>
+  </body>
+</html>

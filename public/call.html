@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Room Calling</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        background: #1a1b1e;
+        color: #e8e8e8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #1a1b1e;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr) 300px;
+        gap: 1rem;
+        padding: 1rem;
+        min-height: 100vh;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .column {
+        background: #25262b;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        min-width: 0;
+      }
+      h1,
+      h2 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9aa0a6;
+        margin: 0 0 0.75rem;
+      }
+      .hint {
+        font-size: 0.8rem;
+        color: #9aa0a6;
+        line-height: 1.4;
+      }
+      .err {
+        color: #ff6b6b;
+      }
+      .ok {
+        color: #3ecf8e;
+      }
+      .action {
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #5b8fc7;
+        color: #fff;
+        cursor: pointer;
+      }
+      .action:hover:not(:disabled) {
+        background: #6c9fd6;
+      }
+      .action:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .action.danger {
+        background: #d9534f;
+      }
+      .action.danger:hover {
+        background: #e36460;
+      }
+      .action.secondary {
+        background: #3d3f46;
+      }
+      button.link {
+        background: none;
+        border: none;
+        color: #7eb8da;
+        font-size: 0.75rem;
+        padding: 0;
+        cursor: pointer;
+      }
+
+      /* Sign-in */
+      #who {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+      }
+
+      /* Rooms */
+      #roomList {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .room {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem;
+        border-radius: 8px;
+        background: #2c2d32;
+      }
+      .room.active {
+        outline: 2px solid #5b8fc7;
+      }
+      .dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: #6b6e76;
+      }
+      .dot.online {
+        background: #3ecf8e;
+      }
+      .room-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .room-sip {
+        font-size: 0.7rem;
+        color: #9aa0a6;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Stage */
+      .stage {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .stage-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.25rem;
+      }
+      #callLabel {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+      .call-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .video-wrap {
+        position: relative;
+        flex: 1;
+        min-height: 320px;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      #remoteVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      #selfView {
+        position: absolute;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        width: 22%;
+        min-width: 120px;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid #25262b;
+        background: #111;
+        transform: scaleX(-1);
+      }
+      #placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b6e76;
+        font-size: 0.95rem;
+        text-align: center;
+        padding: 1rem;
+      }
+      #message {
+        font-size: 0.85rem;
+        margin: 0;
+      }
+
+      /* Camera controls (same look as index.html) */
+      .row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.35rem 0;
+      }
+      .row .spacer {
+        width: 3.25rem;
+        flex-shrink: 0;
+      }
+      button.ctrl {
+        width: 3.25rem;
+        height: 2.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        background: #3d3f46;
+        color: #fff;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+      }
+      button.ctrl:hover:not(:disabled) {
+        background: #4a4d56;
+      }
+      button.ctrl:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+      button.ctrl:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      #intensityPanel {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #3d3f46;
+      }
+      .slider-row {
+        margin-bottom: 0.65rem;
+      }
+      .slider-row label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+        color: #c4c6ca;
+      }
+      .slider-row label span.val {
+        font-variant-numeric: tabular-nums;
+        color: #7eb8da;
+      }
+      .slider-row input[type="range"] {
+        width: 100%;
+        accent-color: #5b8fc7;
+      }
+      .room-mic {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+      .mic-state {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #9aa0a6;
+      }
+      .mic-state.live {
+        color: #3ecf8e;
+      }
+      .mic-state.muted {
+        color: #ff6b6b;
+      }
+      #roomMicError {
+        margin: 0 0 0.75rem;
+      }
+      /* Divider between the room microphone and camera sections. */
+      #roomMicError + h2 {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #3d3f46;
+      }
+      #status {
+        margin-top: 0.75rem;
+        font-size: 0.8rem;
+        color: #9aa0a6;
+        min-height: 2.5rem;
+        text-align: center;
+      }
+      #status.ok {
+        color: #3ecf8e;
+      }
+      #status.err {
+        color: #ff6b6b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="column">
+        <h1>Rooms</h1>
+        <div id="who" hidden>
+          <span id="whoName"></span>
+          <button type="button" id="signOut" class="link">Sign out</button>
+        </div>
+        <p id="roomsMessage" class="hint">Checking sign-in…</p>
+        <ul id="roomList"></ul>
+      </aside>
+
+      <main class="column stage">
+        <div class="stage-head">
+          <span id="callLabel">Not in a call</span>
+          <div class="call-buttons">
+            <button type="button" id="muteBtn" class="action secondary" hidden>Mute me</button>
+            <button type="button" id="hangupBtn" class="action danger" hidden>Hang up</button>
+          </div>
+        </div>
+        <p id="message" role="status" hidden></p>
+        <div class="video-wrap">
+          <video id="remoteVideo" autoplay playsinline></video>
+          <div id="placeholder">Choose a room and click Dial.</div>
+          <video id="selfView" autoplay playsinline muted hidden></video>
+        </div>
+        <audio id="remoteAudio" autoplay></audio>
+      </main>
+
+      <aside class="column" id="controls">
+        <h2>Room microphone</h2>
+        <div class="room-mic">
+          <span id="roomMicState" class="mic-state">Not in a call</span>
+          <button type="button" id="roomMicBtn" class="action secondary" disabled>Mute room</button>
+        </div>
+        <p id="roomMicError" class="hint err" hidden></p>
+        <h2>Camera control</h2>
+        <div class="row">
+          <span class="spacer"></span>
+          <button type="button" class="ctrl" data-direction="up" title="Tilt up">↑</button>
+          <span class="spacer"></span>
+        </div>
+        <div class="row">
+          <span class="spacer"></span>
+          <button type="button" class="ctrl" data-direction="left" title="Pan left">←</button>
+          <span class="spacer" style="width: 0.5rem"></span>
+          <button type="button" class="ctrl" data-direction="right" title="Pan right">→</button>
+          <span class="spacer"></span>
+        </div>
+        <div class="row">
+          <span class="spacer"></span>
+          <button type="button" class="ctrl" data-direction="down" title="Tilt down">↓</button>
+          <span class="spacer"></span>
+        </div>
+        <div class="row" style="margin-top: 0.75rem">
+          <span class="spacer"></span>
+          <button type="button" class="ctrl zoom" data-direction="zoom-in" title="Zoom in">+</button>
+          <button type="button" class="ctrl zoom" data-direction="zoom-out" title="Zoom out">−</button>
+          <span class="spacer"></span>
+        </div>
+        <div id="intensityPanel">
+          <h2>Speed</h2>
+          <div class="slider-row">
+            <label for="panSpeed">Pan speed <span class="val" id="panSpeedOut">12</span></label>
+            <input type="range" id="panSpeed" min="1" max="24" step="1" value="12" />
+          </div>
+          <div class="slider-row">
+            <label for="tiltSpeed">Tilt speed <span class="val" id="tiltSpeedOut">12</span></label>
+            <input type="range" id="tiltSpeed" min="1" max="24" step="1" value="12" />
+          </div>
+          <div class="slider-row">
+            <label for="zoomSpeed">Zoom speed <span class="val" id="zoomSpeedOut">8</span></label>
+            <input type="range" id="zoomSpeed" min="1" max="15" step="1" value="8" />
+          </div>
+        </div>
+        <div id="status" role="status"></div>
+      </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/webex@3.12.0/umd/webex.min.js"></script>
+    <script src="/fecc-controls.js"></script>
+    <script src="/webex-call.js"></script>
+  </body>
+</html>

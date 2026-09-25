@@ -1,0 +1,13 @@
+package-lock.json
+node_modules/
+fecc-card *
+*.har
+notes
+.env
+
+# Local-only files
+ngrok.log
+.DS_Store
+macro/*.local.js
+macro/integrated-fecc-hws-remote.js
+.vercel
