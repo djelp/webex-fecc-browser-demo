@@ -20,7 +20,7 @@ Built for the "clinician checks on a room" use case: sign in with a Webex accoun
 - [3. Deploy to Vercel](#3-deploy-to-vercel)
 - [4. Run locally](#4-run-locally)
 - [Using the app](#using-the-app)
-- [Security notes](#security-notes)
+- [Security model](#security-model)
 - [Troubleshooting](#troubleshooting)
 - [HTTP endpoints](#http-endpoints)
 - [Project layout](#project-layout)
@@ -254,7 +254,25 @@ Covers the room list (filtering, errors), the OAuth flow (state check, code exch
 
 ---
 
-## Security notes
+## Security model
+
+This project splits cleanly into two responsibilities:
+
+| | Cisco / Webex | App owner (you) |
+|---|---|---|
+| **Covers** | The call (media), sign-in and SSO, OAuth tokens, the cloud xAPI that reaches devices, platform compliance ([Cisco Trust Portal](https://trustportal.cisco.com/c/r/ctp/trust-portal.html)) | Hosting, who may sign in, which rooms each person may control, custody of the bot token and client secret, browser protections, audit logging, device macros |
+
+**Encryption in transit, per Cisco's published papers:**
+
+- **Signalling and APIs:** TLS 1.2 or 1.3, preferring ECDHE key exchange and AES-GCM ciphers (for example `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_AES_256_GCM_SHA384`) [[1]](#security-sources) [[2]](#security-sources).
+- **Webex ⇄ room device media:** SRTP with **AES-256-GCM** preferred (then AES-128-GCM, AES-CM-128-HMAC-SHA1); keys negotiated over HTTPS with SDES [[2]](#security-sources).
+- **Browser ⇄ Webex media:** WebRTC, which mandates SRTP keyed over DTLS [[6]](#security-sources).
+- **Hop-by-hop, not end-to-end:** standard calls are encrypted per leg and Webex media servers can decrypt each leg to route it. End-to-end encryption (SFrame keyed with MLS) applies to Zero-Trust E2EE meetings, not direct calls [[1]](#security-sources) [[3]](#security-sources).
+- **OAuth:** authorization-code flow; the client secret stays on the server; Webex tokens are signed and encrypted JWTs [[1]](#security-sources) [[4]](#security-sources). Webex also supports PKCE [[5]](#security-sources), which this demo does not use yet.
+
+The app never carries audio or video, stores no patient data or recordings, and never sees passwords. It does hold a bot that can **move cameras and unmute microphones** in every authorised workspace, so access to the app should be governed and logged accordingly.
+
+### What the demo implements
 
 - **Secrets stay server-side.** The bot token and the Integration client secret are never sent to the browser. The browser receives only the signed-in user's own access token, which the Web SDK needs to place the call.
 - **Sessions** are AES-256-GCM encrypted, `HttpOnly`, `Secure`, `SameSite=Lax` cookies with a 12-hour lifetime; access tokens refresh automatically. Sign-out clears the cookie; because sessions are stateless, a copied cookie stays valid until it expires.
@@ -262,6 +280,26 @@ Covers the room list (filtering, errors), the OAuth flow (state check, code exch
 - **Bot scope.** The bot can control every device it has been given access to. Grant it only on the workspaces this app should reach.
 - **No patient data.** The server handles sign-in identity, device IDs and camera commands only. Media flows between the browser and Webex; nothing is recorded or stored by this app.
 - **Device macro endpoints** (`/startup`, `/call`, `/call-end`) are unauthenticated for compatibility with the legacy macro. Leave `DM_TAB_ENABLED=false` unless you use that flow.
+
+### Before a clinical pilot
+
+1. Set `ALLOWED_ORG_IDS` to the organisation's org.
+2. Add per-room permissions and an audit log (who dialled, moved, muted or unmuted, when, which room).
+3. Replace the bot with an admin-authorised Service App with minimal scopes.
+4. Add a Content-Security-Policy and security headers; serve the Web SDK from the app or load it with an integrity hash.
+5. Remove or authenticate the legacy macro endpoints; add PKCE; add server-side session revocation.
+6. Host in the customer's cloud tenant and region, with secrets in a managed vault and a rotation schedule.
+
+<a id="security-sources"></a>**Sources**
+
+1. [Webex App Security — Cloud Collaboration Security Technical Paper](https://www.cisco.com/c/dam/en/us/td/docs/voice_ip_comm/cloudCollaboration/spark/esp/Cisco-Webex-Apps-Security-White-Paper.pdf) (Cisco, Nov 2022)
+2. [Cisco Collaboration Video Device Security — Cloud Collaboration Security Technical Paper](https://www.cisco.com/c/dam/en/us/td/docs/telepresence/endpoint/webex/webex-rooms-security-white-paper.pdf) (Cisco, May 2023)
+3. [Zero-Trust Security for Webex white paper](https://www.cisco.com/c/en/us/solutions/collateral/collaboration/white-paper-c11-744553.html) (Cisco)
+4. [Integrations](https://developer.webex.com/admin/docs/integrations) and [Experimenting with OAuth Integrations](https://developer.webex.com/docs/understanding-oauth-flow-of-webex-integration) (Webex for Developers)
+5. [Login with Webex](https://developer.webex.com/docs/login-with-webex) (Webex for Developers)
+6. [RFC 8827 — WebRTC Security Architecture](https://www.rfc-editor.org/rfc/rfc8827) (IETF)
+
+Confirm against the current versions of these documents before relying on them.
 
 ---
 
