@@ -14,6 +14,8 @@
     roomsMessage: document.getElementById("roomsMessage"),
     roomList: document.getElementById("roomList"),
     callLabel: document.getElementById("callLabel"),
+    callSub: document.getElementById("callSub"),
+    muteLabel: document.getElementById("muteLabel"),
     muteBtn: document.getElementById("muteBtn"),
     roomMicState: document.getElementById("roomMicState"),
     roomMicBtn: document.getElementById("roomMicBtn"),
@@ -53,7 +55,8 @@
 
   function setRoomsHint(text, isError) {
     els.roomsMessage.textContent = text;
-    els.roomsMessage.className = isError ? "hint err" : "hint";
+    els.roomsMessage.className = isError ? "err" : "muted";
+    els.roomsMessage.hidden = !text;
   }
 
   // ---- Rooms ----------------------------------------------------------------
@@ -81,35 +84,52 @@
   function renderRooms() {
     els.roomList.replaceChildren(
       ...rooms.map((room) => {
+        const isActive = activeRoom?.deviceId === room.deviceId;
         const li = document.createElement("li");
-        li.className = "room" + (activeRoom?.deviceId === room.deviceId ? " active" : "");
+        li.className = "room" + (isActive ? " active" : "");
 
-        const dot = document.createElement("span");
-        dot.className = "dot" + (room.online ? " online" : "");
-        dot.title = room.online ? "Online" : "Offline";
-
-        const text = document.createElement("div");
-        const name = document.createElement("div");
+        const top = document.createElement("div");
+        top.className = "room-top";
+        const name = document.createElement("span");
         name.className = "room-name";
         name.textContent = room.name;
-        const sip = document.createElement("div");
+        const pill = document.createElement("span");
+        if (isActive) {
+          pill.className = "pill active";
+          pill.textContent = meeting ? "In call" : "Calling…";
+        } else {
+          pill.className = "pill" + (room.online ? " online" : "");
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          pill.append(dot, room.online ? "Online" : "Offline");
+        }
+        top.append(name, pill);
+
+        const bottom = document.createElement("div");
+        bottom.className = "room-bottom";
+        const sip = document.createElement("span");
         sip.className = "room-sip";
         sip.textContent = room.sipUri;
-        text.append(name, sip);
+        sip.title = room.sipUri;
+        bottom.append(sip);
+        if (!isActive) {
+          const dial = document.createElement("button");
+          dial.type = "button";
+          dial.className = "btn btn-sm" + (room.online && webex && !activeRoom ? " btn-primary" : "");
+          dial.textContent = "Dial";
+          dial.disabled = !room.online || !webex || Boolean(activeRoom);
+          dial.title = !room.online ? "Room is offline" : !webex ? "Sign in first" : "";
+          dial.setAttribute("aria-label", "Dial " + room.name);
+          dial.addEventListener("click", () => dialRoom(room));
+          bottom.append(dial);
+        }
 
-        const dial = document.createElement("button");
-        dial.type = "button";
-        dial.className = "action";
-        dial.textContent = "Dial";
-        dial.disabled = !room.online || !webex || Boolean(activeRoom);
-        dial.title = !room.online ? "Room is offline" : !webex ? "Sign in first" : "";
-        dial.addEventListener("click", () => dialRoom(room));
-
-        li.append(dot, text, dial);
+        li.append(top, bottom);
         return li;
       })
     );
   }
+
 
   // ---- Sign-in ----------------------------------------------------------------
 
@@ -179,10 +199,11 @@
     els.muteBtn.hidden = state !== "connected";
     els.selfView.hidden = !inCall;
     els.placeholder.hidden = state === "connected";
-    els.callLabel.textContent =
-      state === "dialing" ? "Calling " + room.name + "…" : state === "connected" ? "Connected to " + room.name : "Not in a call";
+    els.callLabel.textContent = inCall ? room.name : "Not in a call";
+    els.callSub.textContent =
+      state === "dialing" ? "Calling…" : state === "connected" ? "Connected" : "Choose a room to call";
     els.placeholder.textContent = state === "dialing" ? "Connecting…" : "Choose a room and click Dial.";
-    els.muteBtn.textContent = "Mute me";
+    els.muteLabel.textContent = "Mute me";
     renderRooms();
   }
 
@@ -296,7 +317,7 @@
       els.roomMicState.className = "mic-state";
       return;
     }
-    els.roomMicState.textContent = roomMicMuted ? "Room is muted" : "Room mic is live";
+    els.roomMicState.textContent = roomMicMuted ? "Muted" : "Live";
     els.roomMicState.className = "mic-state " + (roomMicMuted ? "muted" : "live");
     els.roomMicBtn.textContent = roomMicMuted ? "Unmute room" : "Mute room";
   }
@@ -367,7 +388,7 @@
     const mic = localStreams?.microphone;
     if (!mic) return;
     mic.setUserMuted(!mic.userMuted);
-    els.muteBtn.textContent = mic.userMuted ? "Unmute me" : "Mute me";
+    els.muteLabel.textContent = mic.userMuted ? "Unmute me" : "Mute me";
   });
   window.addEventListener("pagehide", () => {
     if (meeting) meeting.leave().catch(() => {});

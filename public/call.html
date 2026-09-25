@@ -4,147 +4,129 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Room Calling</title>
+    <script src="/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/theme.css" />
     <style>
-      :root {
-        font-family: system-ui, sans-serif;
-        background: #1a1b1e;
-        color: #e8e8e8;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      [hidden] {
-        display: none !important;
-      }
       body {
-        margin: 0;
         min-height: 100vh;
-        background: #1a1b1e;
+        display: flex;
+        flex-direction: column;
       }
+
+      /* Header */
+      .topbar {
+        height: 64px;
+        padding: 0 28px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-grow: 1;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      #who {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      /* Layout */
       .layout {
+        flex-grow: 1;
+        padding: 20px;
         display: grid;
-        grid-template-columns: 280px minmax(0, 1fr) 300px;
-        gap: 1rem;
-        padding: 1rem;
-        min-height: 100vh;
+        grid-template-columns: 300px minmax(0, 1fr) 320px;
+        gap: 20px;
+        min-height: 0;
       }
-      @media (max-width: 900px) {
+      @media (max-width: 1080px) {
         .layout {
           grid-template-columns: 1fr;
         }
+        .topbar {
+          padding: 0 16px;
+        }
+        #whoName {
+          display: none;
+        }
       }
-      .column {
-        background: #25262b;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-        min-width: 0;
-      }
-      h1,
-      h2 {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #9aa0a6;
-        margin: 0 0 0.75rem;
-      }
-      .hint {
-        font-size: 0.8rem;
-        color: #9aa0a6;
-        line-height: 1.4;
-      }
-      .err {
-        color: #ff6b6b;
-      }
-      .ok {
-        color: #3ecf8e;
-      }
-      .action {
-        border: none;
-        border-radius: 8px;
-        padding: 0.45rem 0.9rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        background: #5b8fc7;
-        color: #fff;
-        cursor: pointer;
-      }
-      .action:hover:not(:disabled) {
-        background: #6c9fd6;
-      }
-      .action:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .action.danger {
-        background: #d9534f;
-      }
-      .action.danger:hover {
-        background: #e36460;
-      }
-      .action.secondary {
-        background: #3d3f46;
-      }
-      button.link {
-        background: none;
-        border: none;
-        color: #7eb8da;
-        font-size: 0.75rem;
-        padding: 0;
-        cursor: pointer;
-      }
-
-      /* Sign-in */
-      #who {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        margin-bottom: 1rem;
+      @media (max-width: 560px) {
+        .topbar {
+          gap: 10px;
+        }
+        .brand-name {
+          display: none;
+        }
       }
 
       /* Rooms */
+      .rooms {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .rooms-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      #roomsMessage {
+        margin: 0;
+        font-size: 13px;
+      }
+      #roomsMessage.err {
+        color: var(--danger);
+      }
       #roomList {
         list-style: none;
         margin: 0;
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 10px;
       }
       .room {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.6rem;
-        border-radius: 8px;
-        background: #2c2d32;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
       }
       .room.active {
-        outline: 2px solid #5b8fc7;
+        background: var(--accent-soft);
+        border-color: var(--accent);
       }
-      .dot {
-        width: 0.6rem;
-        height: 0.6rem;
-        border-radius: 50%;
-        background: #6b6e76;
-      }
-      .dot.online {
-        background: #3ecf8e;
+      .room-top,
+      .room-bottom {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
       .room-name {
-        font-size: 0.9rem;
+        flex-grow: 1;
         font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
       .room-sip {
-        font-size: 0.7rem;
-        color: #9aa0a6;
+        flex-grow: 1;
+        min-width: 0;
+        font-size: 12px;
+        color: var(--muted);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -154,29 +136,45 @@
       .stage {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 16px;
+        min-width: 0;
       }
       .stage-head {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 0.75rem;
-        min-height: 2.25rem;
+        gap: 12px;
+        min-height: 40px;
+      }
+      .stage-title {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-width: 0;
       }
       #callLabel {
-        font-size: 0.95rem;
-        font-weight: 600;
+        font-size: 18px;
       }
-      .call-buttons {
-        display: flex;
-        gap: 0.5rem;
+      #callSub {
+        font-size: 13px;
+      }
+      #message {
+        margin: 0;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      #message.err {
+        background: var(--danger-soft);
+        color: var(--danger);
       }
       .video-wrap {
         position: relative;
-        flex: 1;
-        min-height: 320px;
-        background: #000;
-        border-radius: 10px;
+        flex-grow: 1;
+        min-height: 360px;
+        border-radius: 14px;
+        background: var(--video);
         overflow: hidden;
       }
       #remoteVideo {
@@ -185,155 +183,226 @@
         object-fit: contain;
         display: block;
       }
-      #selfView {
-        position: absolute;
-        right: 0.75rem;
-        bottom: 0.75rem;
-        width: 22%;
-        min-width: 120px;
-        aspect-ratio: 16 / 9;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 2px solid #25262b;
-        background: #111;
-        transform: scaleX(-1);
-      }
       #placeholder {
         position: absolute;
         inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #6b6e76;
-        font-size: 0.95rem;
+        padding: 16px;
         text-align: center;
-        padding: 1rem;
+        color: #7f9199;
       }
-      #message {
-        font-size: 0.85rem;
-        margin: 0;
+      #selfView {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 22%;
+        min-width: 140px;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.14);
+        background: #1b262c;
+        transform: scaleX(-1);
       }
 
-      /* Camera controls (same look as index.html) */
-      .row {
+      /* Right column */
+      #controls {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0.35rem 0;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
       }
-      .row .spacer {
-        width: 3.25rem;
-        flex-shrink: 0;
-      }
-      button.ctrl {
-        width: 3.25rem;
-        height: 2.75rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
-        background: #3d3f46;
-        color: #fff;
-        cursor: pointer;
-        touch-action: none;
-        user-select: none;
-      }
-      button.ctrl:hover:not(:disabled) {
-        background: #4a4d56;
-      }
-      button.ctrl:active:not(:disabled) {
-        transform: scale(0.97);
-      }
-      button.ctrl:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-      }
-      #intensityPanel {
-        margin-top: 1.25rem;
-        padding-top: 1rem;
-        border-top: 1px solid #3d3f46;
-      }
-      .slider-row {
-        margin-bottom: 0.65rem;
-      }
-      .slider-row label {
+      .section {
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        font-size: 0.8rem;
-        margin-bottom: 0.25rem;
-        color: #c4c6ca;
-      }
-      .slider-row label span.val {
-        font-variant-numeric: tabular-nums;
-        color: #7eb8da;
-      }
-      .slider-row input[type="range"] {
-        width: 100%;
-        accent-color: #5b8fc7;
+        flex-direction: column;
+        gap: 14px;
       }
       .room-mic {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
+        gap: 12px;
       }
       .mic-state {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #9aa0a6;
+        flex-grow: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 500;
+        background: var(--surface-2);
+        color: var(--muted);
+      }
+      .mic-state::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
       }
       .mic-state.live {
-        color: #3ecf8e;
+        background: var(--success-soft);
+        color: var(--success);
       }
       .mic-state.muted {
-        color: #ff6b6b;
+        background: var(--danger-soft);
+        color: var(--danger);
       }
       #roomMicError {
-        margin: 0 0 0.75rem;
+        margin: 0;
+        font-size: 12px;
+        color: var(--danger);
       }
-      /* Divider between the room microphone and camera sections. */
-      #roomMicError + h2 {
-        margin-top: 1.25rem;
-        padding-top: 1rem;
-        border-top: 1px solid #3d3f46;
+
+      /* Camera pad */
+      .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
+        gap: 8px;
+        justify-content: center;
+      }
+      .pad-btn,
+      .zoom-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+        transition: background-color 120ms ease, border-color 120ms ease;
+      }
+      .pad-btn {
+        border-radius: 50%;
+      }
+      .zoom-btn {
+        width: 88px;
+        height: 44px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
+      .pad-btn:hover:not(:disabled),
+      .zoom-btn:hover:not(:disabled) {
+        border-color: var(--accent);
+      }
+      .pad-btn:active:not(:disabled),
+      .zoom-btn:active:not(:disabled) {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .pad-btn:disabled,
+      .zoom-btn:disabled {
+        color: var(--muted);
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .pad-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--accent-soft);
+      }
+      .pad-center span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .zoom-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .divider {
+        height: 1px;
+        background: var(--border);
+      }
+      .sliders {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .slider {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+      }
+      .slider-label {
+        display: flex;
+        justify-content: space-between;
+      }
+      .slider-label .val {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .slider input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
       }
       #status {
-        margin-top: 0.75rem;
-        font-size: 0.8rem;
-        color: #9aa0a6;
-        min-height: 2.5rem;
-        text-align: center;
+        min-height: 18px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      #status:empty::before {
+        content: "Hold an arrow to move the camera.";
       }
       #status.ok {
-        color: #3ecf8e;
+        color: var(--success);
       }
       #status.err {
-        color: #ff6b6b;
+        color: var(--danger);
       }
     </style>
   </head>
   <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2.5"></rect><path d="M16 10.5l5-3v9l-5-3"></path></svg>
+        </span>
+        <span class="brand-name">Room Calling</span>
+      </div>
+      <div id="who" hidden>
+        <span id="whoName" class="muted"></span>
+      </div>
+      <div class="theme-switch" role="group" aria-label="Theme" data-theme-switch>
+        <button type="button" data-theme-value="system" aria-pressed="true">System</button>
+        <button type="button" data-theme-value="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+      </div>
+      <button type="button" id="signOut" class="btn btn-sm">Sign out</button>
+    </header>
+
     <div class="layout">
-      <aside class="column">
-        <h1>Rooms</h1>
-        <div id="who" hidden>
-          <span id="whoName"></span>
-          <button type="button" id="signOut" class="link">Sign out</button>
+      <aside class="card rooms" aria-label="Rooms">
+        <div class="rooms-head">
+          <h2 class="card-title">Rooms</h2>
         </div>
-        <p id="roomsMessage" class="hint">Checking sign-in…</p>
+        <p id="roomsMessage" class="muted">Checking sign-in…</p>
         <ul id="roomList"></ul>
       </aside>
 
-      <main class="column stage">
+      <main class="card stage">
         <div class="stage-head">
-          <span id="callLabel">Not in a call</span>
-          <div class="call-buttons">
-            <button type="button" id="muteBtn" class="action secondary" hidden>Mute me</button>
-            <button type="button" id="hangupBtn" class="action danger" hidden>Hang up</button>
+          <div class="stage-title">
+            <h1 id="callLabel">Not in a call</h1>
+            <span id="callSub" class="muted">Choose a room to call</span>
           </div>
+          <button type="button" id="muteBtn" class="btn" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+            <span id="muteLabel">Mute me</span>
+          </button>
+          <button type="button" id="hangupBtn" class="btn btn-danger" hidden>Hang up</button>
         </div>
         <p id="message" role="status" hidden></p>
         <div class="video-wrap">
@@ -344,53 +413,50 @@
         <audio id="remoteAudio" autoplay></audio>
       </main>
 
-      <aside class="column" id="controls">
-        <h2>Room microphone</h2>
-        <div class="room-mic">
-          <span id="roomMicState" class="mic-state">Not in a call</span>
-          <button type="button" id="roomMicBtn" class="action secondary" disabled>Mute room</button>
-        </div>
-        <p id="roomMicError" class="hint err" hidden></p>
-        <h2>Camera control</h2>
-        <div class="row">
-          <span class="spacer"></span>
-          <button type="button" class="ctrl" data-direction="up" title="Tilt up">↑</button>
-          <span class="spacer"></span>
-        </div>
-        <div class="row">
-          <span class="spacer"></span>
-          <button type="button" class="ctrl" data-direction="left" title="Pan left">←</button>
-          <span class="spacer" style="width: 0.5rem"></span>
-          <button type="button" class="ctrl" data-direction="right" title="Pan right">→</button>
-          <span class="spacer"></span>
-        </div>
-        <div class="row">
-          <span class="spacer"></span>
-          <button type="button" class="ctrl" data-direction="down" title="Tilt down">↓</button>
-          <span class="spacer"></span>
-        </div>
-        <div class="row" style="margin-top: 0.75rem">
-          <span class="spacer"></span>
-          <button type="button" class="ctrl zoom" data-direction="zoom-in" title="Zoom in">+</button>
-          <button type="button" class="ctrl zoom" data-direction="zoom-out" title="Zoom out">−</button>
-          <span class="spacer"></span>
-        </div>
-        <div id="intensityPanel">
-          <h2>Speed</h2>
-          <div class="slider-row">
-            <label for="panSpeed">Pan speed <span class="val" id="panSpeedOut">12</span></label>
-            <input type="range" id="panSpeed" min="1" max="24" step="1" value="12" />
+      <aside id="controls" aria-label="Room controls">
+        <section class="card section">
+          <h2 class="card-title">Room microphone</h2>
+          <div class="room-mic">
+            <span id="roomMicState" class="mic-state">Not in a call</span>
+            <button type="button" id="roomMicBtn" class="btn btn-sm" disabled>Mute room</button>
           </div>
-          <div class="slider-row">
-            <label for="tiltSpeed">Tilt speed <span class="val" id="tiltSpeedOut">12</span></label>
-            <input type="range" id="tiltSpeed" min="1" max="24" step="1" value="12" />
+          <p id="roomMicError" hidden></p>
+        </section>
+
+        <section class="card section">
+          <h2 class="card-title">Camera</h2>
+          <div class="pad">
+            <span></span>
+            <button type="button" class="pad-btn" data-direction="up" aria-label="Tilt up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+            <span></span>
+            <button type="button" class="pad-btn" data-direction="left" aria-label="Pan left"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+            <span class="pad-center" aria-hidden="true"><span></span></span>
+            <button type="button" class="pad-btn" data-direction="right" aria-label="Pan right"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+            <span></span>
+            <button type="button" class="pad-btn" data-direction="down" aria-label="Tilt down"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+            <span></span>
           </div>
-          <div class="slider-row">
-            <label for="zoomSpeed">Zoom speed <span class="val" id="zoomSpeedOut">8</span></label>
-            <input type="range" id="zoomSpeed" min="1" max="15" step="1" value="8" />
+          <div class="zoom-row">
+            <button type="button" class="zoom-btn" data-direction="zoom-out" aria-label="Zoom out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"></path></svg>Out</button>
+            <button type="button" class="zoom-btn" data-direction="zoom-in" aria-label="Zoom in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12M12 6v12"></path></svg>In</button>
           </div>
-        </div>
-        <div id="status" role="status"></div>
+          <div class="divider"></div>
+          <div class="sliders">
+            <label class="slider" for="panSpeed">
+              <span class="slider-label"><span>Pan speed</span><span class="val" id="panSpeedOut">12</span></span>
+              <input type="range" id="panSpeed" min="1" max="24" step="1" value="12" />
+            </label>
+            <label class="slider" for="tiltSpeed">
+              <span class="slider-label"><span>Tilt speed</span><span class="val" id="tiltSpeedOut">12</span></span>
+              <input type="range" id="tiltSpeed" min="1" max="24" step="1" value="12" />
+            </label>
+            <label class="slider" for="zoomSpeed">
+              <span class="slider-label"><span>Zoom speed</span><span class="val" id="zoomSpeedOut">8</span></span>
+              <input type="range" id="zoomSpeed" min="1" max="15" step="1" value="8" />
+            </label>
+          </div>
+          <div id="status" role="status"></div>
+        </section>
       </aside>
     </div>
 

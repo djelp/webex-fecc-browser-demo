@@ -3,78 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Room Calling</title>
+    <title>Room Calling — Sign in</title>
+    <script src="/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/theme.css" />
     <style>
-      :root {
-        font-family: system-ui, sans-serif;
-        background: #1a1b1e;
-        color: #e8e8e8;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      [hidden] {
-        display: none !important;
-      }
       body {
-        margin: 0;
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .top {
+        height: 64px;
+        padding: 0 28px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+      .center {
+        flex-grow: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
-        background: #1a1b1e;
+        padding: 16px 16px 80px;
       }
-      .card {
+      .signin {
         width: 100%;
-        max-width: 24rem;
-        background: #25262b;
-        border-radius: 12px;
-        padding: 2rem 1.75rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        max-width: 400px;
+        padding: 40px 36px 32px;
+        border-radius: 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
         text-align: center;
       }
-      h1 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem;
+      .signin h1 {
+        font-size: 22px;
       }
-      p {
-        font-size: 0.9rem;
-        color: #9aa0a6;
-        line-height: 1.45;
-        margin: 0 0 1.5rem;
+      .signin p {
+        margin: 0;
       }
-      .action {
-        display: block;
-        border: none;
-        border-radius: 8px;
-        padding: 0.7rem 1rem;
-        font-size: 0.95rem;
-        font-weight: 600;
-        background: #5b8fc7;
-        color: #fff;
-        text-decoration: none;
-        cursor: pointer;
+      .intro {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
-      .action:hover {
-        background: #6c9fd6;
+      #signIn {
+        align-self: stretch;
+        height: 46px;
+        border-radius: 11px;
+        font-size: 15px;
+      }
+      .fine {
+        font-size: 12px;
       }
       #message {
-        margin: 1.25rem 0 0;
-        font-size: 0.85rem;
-        color: #ff6b6b;
+        align-self: stretch;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        background: var(--danger-soft);
+        color: var(--danger);
       }
     </style>
   </head>
   <body>
-    <main class="card">
-      <h1>Room Calling</h1>
-      <p>Sign in with your Webex account to call a room and control its camera.</p>
-      <a id="signIn" class="action" href="/auth/login" hidden>Sign in with Webex</a>
-      <p id="checking">Checking sign-in…</p>
-      <p id="message" role="status" hidden></p>
-    </main>
+    <div class="top">
+      <div class="theme-switch" role="group" aria-label="Theme" data-theme-switch>
+        <button type="button" data-theme-value="system" aria-pressed="true">System</button>
+        <button type="button" data-theme-value="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <div class="center">
+      <main class="signin">
+        <span class="mark mark-lg" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2.5"></rect><path d="M16 10.5l5-3v9l-5-3"></path></svg>
+        </span>
+        <div class="intro">
+          <h1>Room Calling</h1>
+          <p class="muted">Call a room and adjust its camera from your browser.</p>
+        </div>
+        <a id="signIn" class="btn btn-primary" href="/auth/login" hidden>Sign in with Webex</a>
+        <p id="checking" class="muted">Checking sign-in…</p>
+        <p id="message" role="status" hidden></p>
+        <p class="fine muted">Uses your organization's Webex sign-in.</p>
+      </main>
+    </div>
     <script>
       (function () {
         const AUTH_ERRORS = {

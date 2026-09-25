@@ -37,6 +37,7 @@ Built for the "clinician checks on a room" use case: sign in with a Webex accoun
 - **Room list** built automatically from every RoomOS device the bot has API access to, with live online/offline status. Refreshes every 30 seconds, so newly authorised workspaces appear without a redeploy.
 - **Browser calling** with the [Webex Web SDK](https://developer.webex.com/meeting/docs/sdks/webex-meetings-sdk-web-quickstart): dials the room's SIP address and shows remote video, self-view, mute and hang-up.
 - **Far-end camera control**: press-and-hold arrows and zoom with adjustable speeds, sent to the device as [xAPI `Camera.Ramp`](https://roomos.cisco.com/xapi/Command.Camera.Ramp/) through the [Webex cloud xAPI](https://developer.webex.com/docs/api/guides/device-xapi).
+- **Calm clinical interface** with light, dark and system themes (remembered per browser), built on shared styles in `public/theme.css` and `public/theme.js`.
 - **Remote room mute / unmute**: see whether the room's microphones are live and mute or unmute them for people who can't find the button (`Audio.Microphones.Mute` / `Unmute`). The state refreshes every few seconds, so changes made in the room show up too.
 
 ---
@@ -309,6 +310,7 @@ public/login.html      Sign-in page (site root redirects here)
 public/call.html       Calling page: rooms · video · camera controls
 public/webex-call.js   Web SDK sign-in, dialling, media, room refresh
 public/fecc-controls.js  Press-and-hold camera controls (shared)
+public/theme.css / theme.js  Shared look and light / dark / system theme switch
 public/index.html      Legacy camera panel for the Webex App tab (?deviceId=…)
 macro/empty-room-auto-answer.js  Optional RoomOS macro: answer only when the room is empty
 macro/integrated-fecc.js  Legacy RoomOS macro (Webex App tab flow)
