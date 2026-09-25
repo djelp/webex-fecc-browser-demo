@@ -82,7 +82,7 @@ Two Webex identities are involved, each with one job:
 | Identity | Held by | Used for |
 |---|---|---|
 | **Signed-in user** (OAuth Integration) | The browser, via the session | Placing the call with the Web SDK |
-| **Bot** | The server only | Listing devices and sending `Camera.Ramp` commands |
+| **Bot** | The server only | Listing devices and sending `Camera.Ramp` and microphone mute / unmute commands |
 
 The user never gets device-control rights of their own; the server decides what the bot does, and only for signed-in users.
 
